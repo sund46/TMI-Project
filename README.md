@@ -6,8 +6,35 @@
 ## Overview
 ![Alt text](images/project_overview.PNG)
 
+## 담당임무
+기능 기획, DB설계, 서비스 및 판매관리 기능 구현, 프로젝트 매니저
+* 팀원들과 프로젝트 주제 선정, 기능 기획, 테이블 설계
+* 프로젝트 총괄
+* 마이페이지 판매, 수익, 서비스 관리 구현
+* 카테고리 별 서비스 페이지, 서비스 검색 구현
+* 메인페이지 TOP5 판매자 랭킹 구현
+
 ## Skills
 ![Alt text](images/skills.png)
+<br><br>
+프레임워크를 사용하지 않고, Dynamic Web Project로 서비스 별 MVC통신을 하도록 Servlet을 Controller로 이용하였습니다.
+* Servlet마다 인코딩 작업을 하지 않도록 인코딩필터를 만들었습니다.
+* DB와 연결하기 위한 DataSource설정과 Commit, rollback 함수를 포함한 JDBCTemplate을 직접 작성하였습니다.
+* properties를 이용하여 설정한 DB에 CRUD를 위한 SQL문을 작성하였습니다.
+<br><br>
+![Alt text](images/skill.png)
+![Alt text](images/jdbc.png)
+## 메인페이지
+### 판매자 랭킹
+가장 거래가 활발한 카테고리 TOP3중에서 카테고리별 TOP5의 판매자 랭킹을 볼 수 있도록 하였습니다.
+![Alt text](images/ranking.png)
+<pre><code>
+// board-query.properties
+// 수익금 TOP3 카테고리
+Top3select=SELECT ROWNUM, C.CATE FROM (SELECT T.CATEGORY1_NAME CATE,SUM(D.PRICE) FROM DEALMANAGER D JOIN SELLERBOARD S ON(D.BNO=S.BNO) JOIN TALENT1 T ON(S.CATEGORY1_CODE = T.CATEGORY1_CODE) GROUP BY T.CATEGORY1_NAME ORDER BY 1 DESC) C WHERE ROWNUM < 4
+// TOP3 카테고리중 수익금 순위
+Top5select=SELECT M.NICKNAME,S.INCOME,T.CATEGORY1_NAME FROM SELLER S JOIN MEMBER M ON(M.MNO = S.MNO) JOIN DEALMANAGER D ON(S.SNO = D.SNO) JOIN SELLERBOARD SE ON(D.BNO = SE.BNO) JOIN TALENT1 T ON(T.CATEGORY1_CODE = SE.CATEGORY1_CODE) WHERE CATEGORY1_NAME IN(?, ?, ?) ORDER BY 2 DESC
+</code></pre>
 ## 회원 관련 기능
 ### 회원가입
 회원가입시 해야하는 기본적인 유효성검사를 하였습니다.
