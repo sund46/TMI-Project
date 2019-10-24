@@ -31,9 +31,9 @@
 <pre><code>
 // board-query.properties
 // 수익금 TOP3 카테고리
-Top3select=SELECT ROWNUM, C.CATE FROM (SELECT T.CATEGORY1_NAME CATE,SUM(D.PRICE) FROM DEALMANAGER D JOIN SELLERBOARD S ON(D.BNO=S.BNO)  <br>JOIN TALENT1 T ON(S.CATEGORY1_CODE = T.CATEGORY1_CODE) GROUP BY T.CATEGORY1_NAME ORDER BY 1 DESC) C WHERE ROWNUM < 4
+Top3select=SELECT ROWNUM, C.CATE FROM (SELECT T.CATEGORY1_NAME CATE,SUM(D.PRICE) FROM DEALMANAGER D JOIN SELLERBOARD S ON(D.BNO=S.BNO) JOIN TALENT1 T ON(S.CATEGORY1_CODE = T.CATEGORY1_CODE) GROUP BY T.CATEGORY1_NAME ORDER BY 1 DESC) C WHERE ROWNUM < 4
 // TOP3 카테고리중 수익금 순위
-Top5select=SELECT M.NICKNAME,S.INCOME,T.CATEGORY1_NAME FROM SELLER S JOIN MEMBER M ON(M.MNO = S.MNO) JOIN DEALMANAGER D ON(S.SNO = <br>D.SNO) JOIN SELLERBOARD SE ON(D.BNO = SE.BNO) JOIN TALENT1 T ON(T.CATEGORY1_CODE = SE.CATEGORY1_CODE) WHERE CATEGORY1_NAME IN(?, ?, <br>?) ORDER BY 2 DESC
+Top5select=SELECT M.NICKNAME,S.INCOME,T.CATEGORY1_NAME FROM SELLER S JOIN MEMBER M ON(M.MNO = S.MNO) JOIN DEALMANAGER D ON(S.SNO = D.SNO) JOIN SELLERBOARD SE ON(D.BNO = SE.BNO) JOIN TALENT1 T ON(T.CATEGORY1_CODE = SE.CATEGORY1_CODE) WHERE CATEGORY1_NAME IN(?, ?, ?) ORDER BY 2 DESC
 </code></pre>
 ## 회원 관련 기능
 ### 회원가입
@@ -46,197 +46,197 @@ Top5select=SELECT M.NICKNAME,S.INCOME,T.CATEGORY1_NAME FROM SELLER S JOIN MEMBER
 <br><br>
 ![Alt text](images/join.png)
 <pre><code>
-   var emailDupCheckNum = -1;
-   var nickDupCheckNum = 0;
-   // SNS 가입 시 이메일 자동 채움 함수
-   $(function(){
-      var email = "<%=request.getParameter("email")%>";
-      // 이메일 입력란 readonly처리
-      if(email != 'null'){
-          $('#email').attr({
-             'value' : email,
-             readonly : true    
-          }); 
-          // 이메일 중복확인 키 무효화
-          $('#emailDupCheckBtn').attr('disabled',true);  
-          $('#isSNS').attr('value','Y'); 
-          // 이메일 중복확인 유효성체크
-          window.emailDupCheckNum = 0;
-      }
-      
-    });
+var emailDupCheckNum = -1;
+var nickDupCheckNum = 0;
+// SNS 가입 시 이메일 자동 채움 함수
+$(function(){
+var email = "<%=request.getParameter("email")%>";
+// 이메일 입력란 readonly처리
+if(email != 'null'){
+  $('#email').attr({
+     'value' : email,
+     readonly : true    
+  }); 
+  // 이메일 중복확인 키 무효화
+  $('#emailDupCheckBtn').attr('disabled',true);  
+  $('#isSNS').attr('value','Y'); 
+  // 이메일 중복확인 유효성체크
+  window.emailDupCheckNum = 0;
+}
 
-   // 이메일 중복체크 함수
-      function isDupEmail(){ 
-         $.ajax({   
-            url : "/semi/emailDupCheck.do",
-            type : "get",
-            data : {email : $("#email").val()},
-            success : function(data){
-               var isDup = data; 
-               if(isDup == 1){
-                  alert("이미 사용 중인 이메일입니다!");
-                  $('#email').val("").select();
-                  window.emailDupCheckNum = 1;
-                  return false;
-               }else{
-                  window.emailDupCheckNum = 0;
-                  alert("사용 가능한 이메일입니다.");
-                  return true;
-               }
-            },
-            error : function(data){
-               console.log("에러!");  
-            }
-         });
-      }
+});
+
+// 이메일 중복체크 함수
+function isDupEmail(){ 
+ $.ajax({   
+    url : "/semi/emailDupCheck.do",
+    type : "get",
+    data : {email : $("#email").val()},
+    success : function(data){
+       var isDup = data; 
+       if(isDup == 1){
+	  alert("이미 사용 중인 이메일입니다!");
+	  $('#email').val("").select();
+	  window.emailDupCheckNum = 1;
+	  return false;
+       }else{
+	  window.emailDupCheckNum = 0;
+	  alert("사용 가능한 이메일입니다.");
+	  return true;
+       }
+    },
+    error : function(data){
+       console.log("에러!");  
+    }
+ });
+}
    
-     // 이메일 중복체크 버튼 이벤트
-      $("#emailDupCheckBtn").click(function(){
-         isDupEmail();
-      });
-     
-   // 닉네임 중복체크 버튼 이벤트
-      $("#nickNameDupCheckBtn").click(function(){
-         isDupNick();
-      });
-      
-      // 닉네임 중복 체크 함수
-      function isDupNick(){
-    	  $.ajax({
-    		  url : "/semi/nickDupCheck",
-    		  type : "get",
-    		  data : {nickName:$('#nickName').val()},
-    		  success : function(data){
-    			  var isDup = data;
-    		
-    			  // 중복인 경우
-    			  if(isDup == 1){
-    				  window.nickDupCheckNum = 0;
-    				   alert("이미 사용중인 닉네임입니다.");
-    			  }else{
-    				   alert("사용가능한 닉네임입니다.")
-    				  window.nickDupCheckNum = 1;
-    			  }
-    		  },
-    		  error : function(){
-    			  alert("닉네임 중복체크 ajax에러");
-    		  } 
-    	  });  
-      }
-      
-      
-      
-      
-      // 비밀번호 유효성 체크 정규표현식 함수(영문,숫자,특수문자 8자리 이상 20자리 이하)
-      function pwdRegEx(pwd){  
-         var pwdRegEx = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,20}$/;
-      
-         return pwdRegEx.test(pwd);
-      }
-      
-      // 두 비밀번호가 같은지 체크하는 함수
-      function isSamePwd(pwd1,pwd2){
-         if(pwd1 == pwd2){
-            return true;
-         }else return false;
-         
-      }
-      
-      
-      // 비밀번호 유효성체크 이벤트 함수
-      $('[name^="userPwd"]').change(function(){
-         var pwd1 = $('#userPwd').val();
-         var pwd2 = $('#userPwd2').val();
-      
-         if(!isSamePwd(pwd1,pwd2)){
-            $('#pwdResult').html("비밀번호가 일치하지 않습니다.").css('color','red');
-         }else if(!pwdRegEx(pwd2)){
-            $('#pwdResult').html("");
-            $('#pwdResult').html("비밀번호는 숫자,영문 대소문자, 특수문자로 구성된<br> 8자리 이상 20자리 이하이어야 합니다.").css('color','red');
-         }else{
-            $('#pwdResult').html("사용 가능한 비밀번호입니다.").css('color','green');
-         }
-         
-      });
-      
-      // 주민등록번호 유효성 체크 정규표현식 함수
-      function ssnRegEx(ssn1,ssn2){ 
-         //^\d{2}(0[1-9]|1[0-2])(0[1-9]|1[0-9]|2[0-9]|3[0-1])-//
-         var regEx1 = /^\d{2}(0[1-9]|1[0-2])(0[1-9]|[1-2][0-9]|3[0-1])$/
-         var regEx2 = /^[1-4][0-9]{6}$/;
-         console.log(regEx1.test(ssn1));
-         console.log(regEx2.test(ssn2));
-         if(regEx1.test(ssn1) && regEx2.test(ssn2)){
-            $('#ssnResult').html("");
-            return true;
-         }else{
-            $('#ssnResult').html("유효하지 않은 주민등록번호입니다.").css({
-               'color': 'red',
-               'font-size' : '11px'
-         
-            });
-            return false;
-         }
-      }
-      
-      // 주민등록번호 이벤트 함수
-      $('[name^="memberSSN"]').change(function(){
-         var ssn1 = $('#memberSSN1').val();
-         var ssn2 = $('#memberSSN2').val();
-         
-         ssnRegEx(ssn1,ssn2); 
-      });
+// 이메일 중복체크 버튼 이벤트
+$("#emailDupCheckBtn").click(function(){
+ isDupEmail();
+});
 
-      // 유효성 
-      function validate(){
-    
-         // 비밀번호
-         var pwd1 = $('#userPwd').val();
-         var pwd2 = $('#userPwd2').val();
-         // 주민등록번호 
-         var ssn1 = $('#memberSSN1').val();
-         var ssn2 = $('#memberSSN2').val();
-         
-    
-         // 이메일 중복 체크
-         if(emailDupCheckNum == 1){
-            alert("이미 사용 중인 이메일입니다!");
-            return false;
-         } else if(emailDupCheckNum == -1){
-            alert("이메일 중복검사를 해주세요");
-            return false;
-         }
-   	  
-   	
-         // 비밀번호 체크
-         if(!isSamePwd(pwd1,pwd2)){   
-          alert("비밀번호가 일치하지 않습니다.");
-             return false;
-         }
-         
-         if(!pwdRegEx(pwd2)){
-            alert("올바르지 않은 형식의 비밀번호입니다.");
-            return false;
-         }
-	   	
-	   
-	   	   // 닉네임 중복체크
-	       if(nickDupCheckNum == 0){
-	      	 alert("이미 사용중인 닉네임입니다!");
-	      	 return false;
-	       }
-         
-         // 주민등록번호 체크
-         if(!ssnRegEx(ssn1,ssn2)){
-            alert("올바르지 않은 형식의 주민등록번호입니다.");
-            return false;
-         }
+// 닉네임 중복체크 버튼 이벤트
+$("#nickNameDupCheckBtn").click(function(){
+ isDupNick();
+});
 
-         if(!$('#term1').prop('checked')|| !$('#term2').prop('checked')){
-            return false;
-         } 
-      }
+// 닉네임 중복 체크 함수
+function isDupNick(){
+  $.ajax({
+	  url : "/semi/nickDupCheck",
+	  type : "get",
+	  data : {nickName:$('#nickName').val()},
+	  success : function(data){
+		  var isDup = data;
+
+		  // 중복인 경우
+		  if(isDup == 1){
+			  window.nickDupCheckNum = 0;
+			   alert("이미 사용중인 닉네임입니다.");
+		  }else{
+			   alert("사용가능한 닉네임입니다.")
+			  window.nickDupCheckNum = 1;
+		  }
+	  },
+	  error : function(){
+		  alert("닉네임 중복체크 ajax에러");
+	  } 
+  });  
+}
+
+
+
+
+// 비밀번호 유효성 체크 정규표현식 함수(영문,숫자,특수문자 8자리 이상 20자리 이하)
+function pwdRegEx(pwd){  
+ var pwdRegEx = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,20}$/;
+
+ return pwdRegEx.test(pwd);
+}
+
+// 두 비밀번호가 같은지 체크하는 함수
+function isSamePwd(pwd1,pwd2){
+ if(pwd1 == pwd2){
+    return true;
+ }else return false;
+
+}
+
+
+// 비밀번호 유효성체크 이벤트 함수
+$('[name^="userPwd"]').change(function(){
+ var pwd1 = $('#userPwd').val();
+ var pwd2 = $('#userPwd2').val();
+
+ if(!isSamePwd(pwd1,pwd2)){
+    $('#pwdResult').html("비밀번호가 일치하지 않습니다.").css('color','red');
+ }else if(!pwdRegEx(pwd2)){
+    $('#pwdResult').html("");
+    $('#pwdResult').html("비밀번호는 숫자,영문 대소문자, 특수문자로 구성된<br> 8자리 이상 20자리 이하이어야 합니다.").css('color','red');
+ }else{
+    $('#pwdResult').html("사용 가능한 비밀번호입니다.").css('color','green');
+ }
+
+});
+
+// 주민등록번호 유효성 체크 정규표현식 함수
+function ssnRegEx(ssn1,ssn2){ 
+ //^\d{2}(0[1-9]|1[0-2])(0[1-9]|1[0-9]|2[0-9]|3[0-1])-//
+ var regEx1 = /^\d{2}(0[1-9]|1[0-2])(0[1-9]|[1-2][0-9]|3[0-1])$/
+ var regEx2 = /^[1-4][0-9]{6}$/;
+ console.log(regEx1.test(ssn1));
+ console.log(regEx2.test(ssn2));
+ if(regEx1.test(ssn1) && regEx2.test(ssn2)){
+    $('#ssnResult').html("");
+    return true;
+ }else{
+    $('#ssnResult').html("유효하지 않은 주민등록번호입니다.").css({
+       'color': 'red',
+       'font-size' : '11px'
+
+    });
+    return false;
+ }
+}
+
+// 주민등록번호 이벤트 함수
+$('[name^="memberSSN"]').change(function(){
+ var ssn1 = $('#memberSSN1').val();
+ var ssn2 = $('#memberSSN2').val();
+
+ ssnRegEx(ssn1,ssn2); 
+});
+
+// 유효성 
+function validate(){
+
+ // 비밀번호
+ var pwd1 = $('#userPwd').val();
+ var pwd2 = $('#userPwd2').val();
+ // 주민등록번호 
+ var ssn1 = $('#memberSSN1').val();
+ var ssn2 = $('#memberSSN2').val();
+
+
+ // 이메일 중복 체크
+ if(emailDupCheckNum == 1){
+    alert("이미 사용 중인 이메일입니다!");
+    return false;
+ } else if(emailDupCheckNum == -1){
+    alert("이메일 중복검사를 해주세요");
+    return false;
+ }
+
+
+ // 비밀번호 체크
+ if(!isSamePwd(pwd1,pwd2)){   
+  alert("비밀번호가 일치하지 않습니다.");
+     return false;
+ }
+
+ if(!pwdRegEx(pwd2)){
+    alert("올바르지 않은 형식의 비밀번호입니다.");
+    return false;
+ }
+
+
+	   // 닉네임 중복체크
+       if(nickDupCheckNum == 0){
+	 alert("이미 사용중인 닉네임입니다!");
+	 return false;
+       }
+
+ // 주민등록번호 체크
+ if(!ssnRegEx(ssn1,ssn2)){
+    alert("올바르지 않은 형식의 주민등록번호입니다.");
+    return false;
+ }
+
+ if(!$('#term1').prop('checked')|| !$('#term2').prop('checked')){
+    return false;
+ } 
+}
 </code></pre>
 ### 로그인
 이메일과 비밀번호 조회결과를 체크합니다.
@@ -248,76 +248,76 @@ Top5select=SELECT M.NICKNAME,S.INCOME,T.CATEGORY1_NAME FROM SELLER S JOIN MEMBER
 <pre><code>
 // LoginServlet.java
 // 로그인 버튼 누를 시 <form>의 데이터를 Servlet에서 받는다.
-    String userEmail = request.getParameter("userEmail");
-		String userPwd = request.getParameter("userPwd");
-		String isSNS = request.getParameter("isSNS");
-		int mCount = 0; // 문의 건 수
-		int buyCount =0; // 구매 건 수
-		int sellCount =0; // 판매 건 수
-		
-		Member m = new Member(userEmail,userPwd);
-		m.setIsSNS(isSNS);
-		
-		
-		MemberService ms = new MemberService();
-		
-		try {
-			m = ms.selectMemeber(m);
-			mCount = ms.getMcount(m);
-			buyCount = ms.getBuyCount(m);
-			sellCount = ms.getSellCount(m);
-			
-		
-			// 관리자 계정일 경우 관리자 페이지로 보낸다.
-			if(m.getIsAdmin().equals("Y")) {
-				HttpSession session = request.getSession();
-				session.setAttribute("admin", m);
-				response.sendRedirect("memberSelect.admin");
-			}// 관리자가 아닐 경우 메일인증 여부 확인
-			else if(m.getEmailVerification().equals("0")) {
-				request.setAttribute("errorMsg", "메일인증이 되지않은 계정입니다.");
-				request.getRequestDispatcher("views/LoginForm.jsp").forward(request, response);
-			}else if(m.getIsValid().equals("N")||m.getIsAlive().equals("N")) {
-				request.setAttribute("errorMsg", "관리자에 의해 정지되었거나 탈퇴한 회원입니다.");
-				request.getRequestDispatcher("views/LoginForm.jsp").forward(request, response);
-			}
-			
-			else { // 메일인증 된 회원이면 로그인
-					
-					// 판매자일 경우
-				if(m.getIsSeller().equals("Y")) {
+String userEmail = request.getParameter("userEmail");
+String userPwd = request.getParameter("userPwd");
+String isSNS = request.getParameter("isSNS");
+int mCount = 0; // 문의 건 수
+int buyCount =0; // 구매 건 수
+int sellCount =0; // 판매 건 수
 
-					HttpSession session = request.getSession();
-					session.setAttribute("member", m);
-					
-					System.out.println("서블릿에서의 mCount : " + mCount);
-					session.setAttribute("mCount", mCount);
-					session.setAttribute("buyCount", buyCount);
-					session.setAttribute("sellCount", sellCount);
-					
-					RequestDispatcher view = request.getRequestDispatcher("seller.so");
-					view.forward(request, response);
-					
-					
-					// 판매자 아닐경우
-				}else {
-					HttpSession session = request.getSession();
-					session.setAttribute("member", m);
-					System.out.println("서블릿에서의 mCount : " + mCount);
-					session.setAttribute("mCount", mCount);
-					session.setAttribute("buyCount", buyCount);
-					session.setAttribute("sellCount", sellCount);
-					
-					RequestDispatcher view = request.getRequestDispatcher("index.jsp");
-					view.forward(request, response);
-				}
-			}
-// 아이디 & 비밀번호가 틀릴 경우 에러메세지
-		} catch (Exception e) {
-			request.setAttribute("errorMsg", "아이디 또는 비밀번호를 다시 확인하세요.<br> TMI에 등록되지 않은 아이디이거나, 비밀번호를 잘못 입력하셨습니다.");
-			request.getRequestDispatcher("views/LoginForm.jsp").forward(request, response);
-		
+Member m = new Member(userEmail,userPwd);
+m.setIsSNS(isSNS);
+
+
+MemberService ms = new MemberService();
+
+try {
+	m = ms.selectMemeber(m);
+	mCount = ms.getMcount(m);
+	buyCount = ms.getBuyCount(m);
+	sellCount = ms.getSellCount(m);
+
+
+	// 관리자 계정일 경우 관리자 페이지로 보낸다.
+	if(m.getIsAdmin().equals("Y")) {
+		HttpSession session = request.getSession();
+		session.setAttribute("admin", m);
+		response.sendRedirect("memberSelect.admin");
+	}// 관리자가 아닐 경우 메일인증 여부 확인
+	else if(m.getEmailVerification().equals("0")) {
+		request.setAttribute("errorMsg", "메일인증이 되지않은 계정입니다.");
+		request.getRequestDispatcher("views/LoginForm.jsp").forward(request, response);
+	}else if(m.getIsValid().equals("N")||m.getIsAlive().equals("N")) {
+		request.setAttribute("errorMsg", "관리자에 의해 정지되었거나 탈퇴한 회원입니다.");
+		request.getRequestDispatcher("views/LoginForm.jsp").forward(request, response);
+	}
+
+	else { // 메일인증 된 회원이면 로그인
+
+			// 판매자일 경우
+		if(m.getIsSeller().equals("Y")) {
+
+			HttpSession session = request.getSession();
+			session.setAttribute("member", m);
+
+			System.out.println("서블릿에서의 mCount : " + mCount);
+			session.setAttribute("mCount", mCount);
+			session.setAttribute("buyCount", buyCount);
+			session.setAttribute("sellCount", sellCount);
+
+			RequestDispatcher view = request.getRequestDispatcher("seller.so");
+			view.forward(request, response);
+
+
+			// 판매자 아닐경우
+		}else {
+			HttpSession session = request.getSession();
+			session.setAttribute("member", m);
+			System.out.println("서블릿에서의 mCount : " + mCount);
+			session.setAttribute("mCount", mCount);
+			session.setAttribute("buyCount", buyCount);
+			session.setAttribute("sellCount", sellCount);
+
+			RequestDispatcher view = request.getRequestDispatcher("index.jsp");
+			view.forward(request, response);
 		}
+	}
+// 아이디 & 비밀번호가 틀릴 경우 에러메세지
+} catch (Exception e) {
+	request.setAttribute("errorMsg", "아이디 또는 비밀번호를 다시 확인하세요.<br> TMI에 등록되지 않은 아이디이거나, 비밀번호를 잘못 입력하셨습니다.");
+	request.getRequestDispatcher("views/LoginForm.jsp").forward(request, response);
+
+}
 </code></pre>
 <br><br>
 네이버 및 카카오 아이디로 로그인을 할 수 있도록 하였습니다.
@@ -325,114 +325,114 @@ Top5select=SELECT M.NICKNAME,S.INCOME,T.CATEGORY1_NAME FROM SELLER S JOIN MEMBER
 <br><br>
 ![Alt text](images/naverkakao.png)
 <pre><code>
-   // 카카오 로그인
-    Kakao.init('cc56a05cae8352b3084c302df2e23e3f');
-    // 카카오 로그인 버튼을 생성합니다.
-    Kakao.Auth.createLoginButton({
-      container: '#kakao-login-btn',
-      success: function() {
-   
-         Kakao.API.request({ 
-              url: '/v2/user/me', 
-              success: function(res) { 
-                 var email = res.kakao_account.email;
-                 
-                 $.ajax({
-                      url : "/semi/emailDupCheck.do",
-                      type : "post",
-                      data : {email : email},
-                        success : function(data){
-                        	 
-                              var isDup = data;
-                              // 이미 가입된 메일이라는 뜻. 로그인 시켜준다.
-                              if(isDup == 1){
-                                 location.href = '/semi/login.do?userEmail='+email+ '&userPwd=0&isSNS=Y';
-                              } else{ // 가입자가 아니므로 가입절차 후 로그인
-                            	 	
-                            	  if(email == undefined || email == null){
-                            		  alert("카카오 계정에 등록된 이메일이 없습니다.\n 가입에 필요한 정보를 입력해주세요.");
-                            		  location.href = '/semi/views/member/memberJoin.jsp?isSNS=N';
-                            	  }else{
-                            		  alert("카카오에 가입한 이메일로 가입을 진행합니다.\n추가 정보를 입력해주세요.");
-                            		  location.href = '/semi/views/member/memberJoin.jsp?email=' + email + '&isSNS=Y';
-                            	  }
-                            	  
-                                 
-                              }
-                        },
-                        error : function(){
-                           console.log("카톡 로그인 중복체크에서 에러났어여");
-                        }
-                 });
-                   
-                }, 
-             fail: function(error) { 
-                   console.log(JSON.stringify(error)); 
-               } 
-  
-           //location.href = '/semi/index.jsp';
-           });
-         
-         
-        },
-         fail: function(err) {
-         alert(JSON.stringify(err));
-          }
-    });
-   
-   // 네이버 로그인
+// 카카오 로그인
+Kakao.init('cc56a05cae8352b3084c302df2e23e3f');
+// 카카오 로그인 버튼을 생성합니다.
+Kakao.Auth.createLoginButton({
+container: '#kakao-login-btn',
+success: function() {
 
-   var naverLogin = new naver.LoginWithNaverId(
-      {
-         clientId: "jO850s5j4AkPe49KkkVW",
-         callbackUrl: "http://localhost:8088/semi/views/LoginForm.jsp",
-         isPopup: false, /* 팝업을 통한 연동처리 여부 */
-         loginButton: {color: "green", type: 3, width:350, height: 60} /* 로그인 버튼의 타입을 지정 */
-      }
-   );
-   
-   /* 설정정보를 초기화하고 연동을 준비 */
-   naverLogin.init();
-   
-   $('#naverIdLogin').on('click', function () {
-      naverLogin.getLoginStatus(function (status) {
-         if (status) {
-            /* (5) 필수적으로 받아야하는 프로필 정보가 있다면 callback처리 시점에 체크 */
-             var email = naverLogin.user.getEmail();
-            if( email == undefined || email == null) {
-               alert("이메일은 필수정보입니다. 정보제공을 동의해주세요.");
-               /* (5-1) 사용자 정보 재동의를 위하여 다시 네아로 동의페이지로 이동함 */
-               naverLogin.reprompt();
-               return;
-            }
-            
-           
-            
-             $.ajax({
-                   url : "/semi/emailDupCheck.do",
-                   type : "post",
-                   data : {email : email},
-                     success : function(data){
-                           var isDup = data;
-                           // 이미 가입된 메일이라는 뜻. 로그인 시켜준다.
-                           if(isDup == 1){
-                              location.href = '/semi/login.do?userEmail='+email+ '&userPwd=0&isSNS=Y';
-                           } else{ // 가입자가 아니므로 가입절차 후 로그인
-                        	   alert("네이버 이메일로 가입을 진행합니다.\n 추가 정보를 입력해주세요.");
-                              location.href = '/semi/views/member/memberJoin.jsp?email=' + email + '&isSNS=Y';
-                          
-                           }
-                     },
-                     error : function(){
-                        console.log("네이버 로그인 중복체크에서 에러");
-                     }
-               });
-   
-         } else {
-            console.log("callback 처리에 실패하였습니다.");
-         }
-      });
-   });
+Kakao.API.request({ 
+url: '/v2/user/me', 
+success: function(res) { 
+ var email = res.kakao_account.email;
+
+ $.ajax({
+      url : "/semi/emailDupCheck.do",
+      type : "post",
+      data : {email : email},
+	success : function(data){
+
+	      var isDup = data;
+	      // 이미 가입된 메일이라는 뜻. 로그인 시켜준다.
+	      if(isDup == 1){
+		 location.href = '/semi/login.do?userEmail='+email+ '&userPwd=0&isSNS=Y';
+	      } else{ // 가입자가 아니므로 가입절차 후 로그인
+
+		  if(email == undefined || email == null){
+			  alert("카카오 계정에 등록된 이메일이 없습니다.\n 가입에 필요한 정보를 입력해주세요.");
+			  location.href = '/semi/views/member/memberJoin.jsp?isSNS=N';
+		  }else{
+			  alert("카카오에 가입한 이메일로 가입을 진행합니다.\n추가 정보를 입력해주세요.");
+			  location.href = '/semi/views/member/memberJoin.jsp?email=' + email + '&isSNS=Y';
+		  }
+
+
+	      }
+	},
+	error : function(){
+	   console.log("카톡 로그인 중복체크에서 에러났어여");
+	}
+ });
+
+}, 
+fail: function(error) { 
+   console.log(JSON.stringify(error)); 
+} 
+
+//location.href = '/semi/index.jsp';
+});
+
+
+},
+ fail: function(err) {
+ alert(JSON.stringify(err));
+  }
+});
+
+// 네이버 로그인
+
+var naverLogin = new naver.LoginWithNaverId(
+{
+ clientId: "jO850s5j4AkPe49KkkVW",
+ callbackUrl: "http://localhost:8088/semi/views/LoginForm.jsp",
+ isPopup: false, /* 팝업을 통한 연동처리 여부 */
+ loginButton: {color: "green", type: 3, width:350, height: 60} /* 로그인 버튼의 타입을 지정 */
+}
+);
+
+/* 설정정보를 초기화하고 연동을 준비 */
+naverLogin.init();
+
+$('#naverIdLogin').on('click', function () {
+naverLogin.getLoginStatus(function (status) {
+ if (status) {
+    /* (5) 필수적으로 받아야하는 프로필 정보가 있다면 callback처리 시점에 체크 */
+     var email = naverLogin.user.getEmail();
+    if( email == undefined || email == null) {
+       alert("이메일은 필수정보입니다. 정보제공을 동의해주세요.");
+       /* (5-1) 사용자 정보 재동의를 위하여 다시 네아로 동의페이지로 이동함 */
+       naverLogin.reprompt();
+       return;
+    }
+
+
+
+     $.ajax({
+	   url : "/semi/emailDupCheck.do",
+	   type : "post",
+	   data : {email : email},
+	     success : function(data){
+		   var isDup = data;
+		   // 이미 가입된 메일이라는 뜻. 로그인 시켜준다.
+		   if(isDup == 1){
+		      location.href = '/semi/login.do?userEmail='+email+ '&userPwd=0&isSNS=Y';
+		   } else{ // 가입자가 아니므로 가입절차 후 로그인
+			   alert("네이버 이메일로 가입을 진행합니다.\n 추가 정보를 입력해주세요.");
+		      location.href = '/semi/views/member/memberJoin.jsp?email=' + email + '&isSNS=Y';
+
+		   }
+	     },
+	     error : function(){
+		console.log("네이버 로그인 중복체크에서 에러");
+	     }
+       });
+
+ } else {
+    console.log("callback 처리에 실패하였습니다.");
+ }
+});
+});
 </code></pre>
 ### ID / PWD 찾기
 이메일과 비밀번호를 입력한 정보와 일치하면 찾을 수 있도록 하였습니다.
@@ -448,54 +448,54 @@ Top5select=SELECT M.NICKNAME,S.INCOME,T.CATEGORY1_NAME FROM SELLER S JOIN MEMBER
 			url : "/semi/searchPwd.do",
 			type : "post",
 			data : {sEmail : $('#sEmail').val(),sName : $('#sName').val(), sSSN1: $('#sSSN1').val(), sSSN2:$('#sSSN2').val()},
-			success : function(data){
-				
-				var emailRegEx = /@+/;
-				// 입력한 정보에 해당하는 이메일이 존재한다면?
-				if(emailRegEx.test(data)){
-				
-					// 새 비번 입력하는 modal창 띄워줌
-					$('#popUpSetPwd').trigger('click');
-					
-				
-					$('#resetPwdBtn').on('click',function(){
-						if(!isSamePwd($('#newPwd1').val(),$('#newPwd2').val())){
-							alert("두 비밀번호가 같지 않습니다.")
-						}else if(!pwdRegEx($('#newPwd1').val())){
-							alert("규정에 맞지 않는 비밀번호입니다.")
-						}else{
-								$.ajax({
-									url : "/semi/rePwd.do",
-									type : "get",
-									data : {email: $('#sEmail').val(), userPwd:$('#newPwd1').val()},
-									success: function(){
-										alert("비밀번호 변경이 완료되었습니다.");
-										$('.close').trigger('click');
-										location.href="/semi/views/member/memberSearch.jsp";
-									},
-									error: function(){
-										alert("에러!");
-									}
-								
-								}); 	
-					      }
-					   });
-					
-					
-				}else{ // 그렇지 않다면?
-					$('#popUpFailMsg').trigger('click');
-					$('#pwdFailText').html(data);
-					$('#pwdFailAlert').css('visibility','visible');
-				
-				}
-		
-			}, // 1차 success
-			 error : function(){
-				alert("에러어어");
-			 }	// 1차 error
-		}); // 1차 ajax
-		
-	}// 가장큰 함수
+success : function(data){
+
+	var emailRegEx = /@+/;
+	// 입력한 정보에 해당하는 이메일이 존재한다면?
+	if(emailRegEx.test(data)){
+
+		// 새 비번 입력하는 modal창 띄워줌
+		$('#popUpSetPwd').trigger('click');
+
+
+		$('#resetPwdBtn').on('click',function(){
+			if(!isSamePwd($('#newPwd1').val(),$('#newPwd2').val())){
+				alert("두 비밀번호가 같지 않습니다.")
+			}else if(!pwdRegEx($('#newPwd1').val())){
+				alert("규정에 맞지 않는 비밀번호입니다.")
+			}else{
+				$.ajax({
+					url : "/semi/rePwd.do",
+					type : "get",
+					data : {email: $('#sEmail').val(), userPwd:$('#newPwd1').val()},
+					success: function(){
+						alert("비밀번호 변경이 완료되었습니다.");
+						$('.close').trigger('click');
+						location.href="/semi/views/member/memberSearch.jsp";
+					},
+					error: function(){
+						alert("에러!");
+					}
+
+				}); 	
+		      }
+		   });
+
+
+	}else{ // 그렇지 않다면?
+		$('#popUpFailMsg').trigger('click');
+		$('#pwdFailText').html(data);
+		$('#pwdFailAlert').css('visibility','visible');
+
+	}
+
+}, // 1차 success
+ error : function(){
+	alert("에러어어");
+ }	// 1차 error
+}); // 1차 ajax
+
+}// 가장큰 함수
 </code></pre>
 ### 1:1 문의 작성
 로그인 후 메인페이지 우측하단 버튼을 통해 문의작성 가능한 Modal을 보여주도록 하였습니다.
@@ -520,70 +520,70 @@ Top5select=SELECT M.NICKNAME,S.INCOME,T.CATEGORY1_NAME FROM SELLER S JOIN MEMBER
 ![Alt text](images/category.png)
 <pre><code>
 ArrayList<SellerBoard> list = null;
-		SellerboardService bs;
-		
-			bs = new SellerboardService();
-		
-		int startPage; // 시작페이지
-		int endPage; // 끝페이지
-		int maxPage; // 최대 페이지
-		int currentPage; // 현재 페이지
-		int pageLimit; // 보여질 페이지 번호 갯수
-		int boardLimit; // 게시물 갯수
-		
-		currentPage = 1; // 초기 카테고리 페이지 이동 시 1번 페이지로 설정
-		pageLimit = 5; // 5개의 페이지 번호만 보여줌
-		boardLimit = 12; // 12개의 게시물만 보여줌
-		
-		String cCode = request.getParameter("cCode"); // 상위 카테고리
-		String code = request.getParameter("code"); // 하위 카테고리
-		String page="";
-		Talent t;
-		try {
-			t = bs.SelectTalent(cCode,code);
-			t.setTalent1code(cCode);
-			t.setTalent2code(code);
-			
-			if(request.getParameter("currentPage")!=null) {
-				currentPage
-				= Integer.parseInt(request.getParameter("currentPage"));
-			}
-			
-			// 선택된 카테고리의 총 게시물 갯수를 가져옴
-			int listCount = bs.getListCount(cCode,code);
-			
-			// 0.99를 더한 이유는 나눈 나머지들이 담길 페이지를 추가하기 위함.
-			maxPage = (int)((double)listCount/boardLimit+0.99);
-			
-			// 시작페이지 계산.
-			startPage = (int)((double)currentPage/(pageLimit+1))*pageLimit+1;
-			
-			// 끝 페이지
-			endPage = startPage+pageLimit-1;
-			if(endPage>maxPage) {
-				endPage = maxPage;
-			}
-			
-			// 조건에 맞는 게시물리스트 12개만 가져옴
-			list = bs.selectList(currentPage, pageLimit, boardLimit, cCode, code);
-			
-			page="views/categoryPage/allCategoryPage.jsp";
-			request.setAttribute("list", list);
-			request.setAttribute("talent", t);
-			PageInfo pi = new PageInfo(currentPage, listCount, pageLimit, boardLimit, maxPage, startPage, endPage);
-			request.setAttribute("pi", pi);
-			request.setAttribute("code", code);
-			request.setAttribute("cCode", cCode);
-			
-		} catch (SellerboardException e) {
-			page="views/common/errorPage.jsp";
-			request.setAttribute("msg", "게시글 목록 조회 실패");
-			request.setAttribute("exception", e);
-			
-		}
+SellerboardService bs;
 
-		request.getRequestDispatcher(page).forward(request, response);
-		
+	bs = new SellerboardService();
+
+int startPage; // 시작페이지
+int endPage; // 끝페이지
+int maxPage; // 최대 페이지
+int currentPage; // 현재 페이지
+int pageLimit; // 보여질 페이지 번호 갯수
+int boardLimit; // 게시물 갯수
+
+currentPage = 1; // 초기 카테고리 페이지 이동 시 1번 페이지로 설정
+pageLimit = 5; // 5개의 페이지 번호만 보여줌
+boardLimit = 12; // 12개의 게시물만 보여줌
+
+String cCode = request.getParameter("cCode"); // 상위 카테고리
+String code = request.getParameter("code"); // 하위 카테고리
+String page="";
+Talent t;
+try {
+	t = bs.SelectTalent(cCode,code);
+	t.setTalent1code(cCode);
+	t.setTalent2code(code);
+
+	if(request.getParameter("currentPage")!=null) {
+		currentPage
+		= Integer.parseInt(request.getParameter("currentPage"));
+	}
+
+	// 선택된 카테고리의 총 게시물 갯수를 가져옴
+	int listCount = bs.getListCount(cCode,code);
+
+	// 0.99를 더한 이유는 나눈 나머지들이 담길 페이지를 추가하기 위함.
+	maxPage = (int)((double)listCount/boardLimit+0.99);
+
+	// 시작페이지 계산.
+	startPage = (int)((double)currentPage/(pageLimit+1))*pageLimit+1;
+
+	// 끝 페이지
+	endPage = startPage+pageLimit-1;
+	if(endPage>maxPage) {
+		endPage = maxPage;
+	}
+
+	// 조건에 맞는 게시물리스트 12개만 가져옴
+	list = bs.selectList(currentPage, pageLimit, boardLimit, cCode, code);
+
+	page="views/categoryPage/allCategoryPage.jsp";
+	request.setAttribute("list", list);
+	request.setAttribute("talent", t);
+	PageInfo pi = new PageInfo(currentPage, listCount, pageLimit, boardLimit, maxPage, startPage, endPage);
+	request.setAttribute("pi", pi);
+	request.setAttribute("code", code);
+	request.setAttribute("cCode", cCode);
+
+} catch (SellerboardException e) {
+	page="views/common/errorPage.jsp";
+	request.setAttribute("msg", "게시글 목록 조회 실패");
+	request.setAttribute("exception", e);
+
+}
+
+request.getRequestDispatcher(page).forward(request, response);
+
 // 쿼리 board-query.properties
 // 한 페이지에 5개의 게시물을 보여준다고 했을 때, 2페이지를 조회한다면 10개의 게시물만 조회한 뒤 RowNum이 6보다 큰 Data만 가져오는 방식 
 selectList = SELECT BO.*, (SELECT M.NICKNAME FROM MEMBER M JOIN SELLER S ON (M.MNO = S.MNO) WHERE S.SNO= BO.SNO) USERNAME FROM (SELECT ROWNUM RNUM, B.* FROM (SELECT * FROM SELLERBOARD WHERE STATE='B2' AND CATEGORY1_CODE = ? ORDER BY BNO DESC) B WHERE ROWNUM <= ?) BO WHERE RNUM >= ?
