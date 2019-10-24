@@ -413,6 +413,63 @@
 * 비밀번호는 사용자의 이메일과 이름, 주민등록번호가 DB정보와 일치하면 Modal로 비밀번호 재설정을 하도록 해줍니다.
 <br><br>
 ![Alt text](images/findid.png)
+<pre><code>
+// 비밀번호 재설정 함수
+	function isRightInfo(){
+		// 입력한 정보의 이메일이 있는지 확인
+		$.ajax({
+			url : "/semi/searchPwd.do",
+			type : "post",
+			data : {sEmail : $('#sEmail').val(),sName : $('#sName').val(), sSSN1: $('#sSSN1').val(), sSSN2:$('#sSSN2').val()},
+			success : function(data){
+				
+				var emailRegEx = /@+/;
+				// 입력한 정보에 해당하는 이메일이 존재한다면?
+				if(emailRegEx.test(data)){
+				
+					// 새 비번 입력하는 modal창 띄워줌
+					$('#popUpSetPwd').trigger('click');
+					
+				
+					$('#resetPwdBtn').on('click',function(){
+						if(!isSamePwd($('#newPwd1').val(),$('#newPwd2').val())){
+							alert("두 비밀번호가 같지 않습니다.")
+						}else if(!pwdRegEx($('#newPwd1').val())){
+							alert("규정에 맞지 않는 비밀번호입니다.")
+						}else{
+								$.ajax({
+									url : "/semi/rePwd.do",
+									type : "get",
+									data : {email: $('#sEmail').val(), userPwd:$('#newPwd1').val()},
+									success: function(){
+										alert("비밀번호 변경이 완료되었습니다.");
+										$('.close').trigger('click');
+										location.href="/semi/views/member/memberSearch.jsp";
+									},
+									error: function(){
+										alert("에러!");
+									}
+								
+								}); 	
+					      }
+					   });
+					
+					
+				}else{ // 그렇지 않다면?
+					$('#popUpFailMsg').trigger('click');
+					$('#pwdFailText').html(data);
+					$('#pwdFailAlert').css('visibility','visible');
+				
+				}
+		
+			}, // 1차 success
+			 error : function(){
+				alert("에러어어");
+			 }	// 1차 error
+		}); // 1차 ajax
+		
+	}// 가장큰 함수
+</code></pre>
 ### 1:1 문의 작성
 로그인 후 메인페이지 우측하단 버튼을 통해 문의작성 가능한 Modal을 보여주도록 하였습니다.
 * 작성한 문의는 관리자페이지에 등록이 됩니다.
@@ -434,6 +491,76 @@
 * 3행 4열로 한 페이지당 12개의 서비스를 보이도록 페이징처리를 하였습니다.
 <br><br>
 ![Alt text](images/category.png)
+<pre><code>
+ArrayList<SellerBoard> list = null;
+		SellerboardService bs;
+		
+			bs = new SellerboardService();
+		
+		int startPage; // 시작페이지
+		int endPage; // 끝페이지
+		int maxPage; // 최대 페이지
+		int currentPage; // 현재 페이지
+		int pageLimit; // 보여질 페이지 번호 갯수
+		int boardLimit; // 게시물 갯수
+		
+		currentPage = 1; // 초기 카테고리 페이지 이동 시 1번 페이지로 설정
+		pageLimit = 5; // 5개의 페이지 번호만 보여줌
+		boardLimit = 12; // 12개의 게시물만 보여줌
+		
+		String cCode = request.getParameter("cCode"); // 상위 카테고리
+		String code = request.getParameter("code"); // 하위 카테고리
+		String page="";
+		Talent t;
+		try {
+			t = bs.SelectTalent(cCode,code);
+			t.setTalent1code(cCode);
+			t.setTalent2code(code);
+			
+			if(request.getParameter("currentPage")!=null) {
+				currentPage
+				= Integer.parseInt(request.getParameter("currentPage"));
+			}
+			
+			// 선택된 카테고리의 총 게시물 갯수를 가져옴
+			int listCount = bs.getListCount(cCode,code);
+			
+			// 0.99를 더한 이유는 나눈 나머지들이 담길 페이지를 추가하기 위함.
+			maxPage = (int)((double)listCount/boardLimit+0.99);
+			
+			// 시작페이지 계산.
+			startPage = (int)((double)currentPage/(pageLimit+1))*pageLimit+1;
+			
+			// 끝 페이지
+			endPage = startPage+pageLimit-1;
+			if(endPage>maxPage) {
+				endPage = maxPage;
+			}
+			
+			// 조건에 맞는 게시물리스트 12개만 가져옴
+			list = bs.selectList(currentPage, pageLimit, boardLimit, cCode, code);
+			
+			page="views/categoryPage/allCategoryPage.jsp";
+			request.setAttribute("list", list);
+			request.setAttribute("talent", t);
+			PageInfo pi = new PageInfo(currentPage, listCount, pageLimit, boardLimit, maxPage, startPage, endPage);
+			request.setAttribute("pi", pi);
+			request.setAttribute("code", code);
+			request.setAttribute("cCode", cCode);
+			
+		} catch (SellerboardException e) {
+			page="views/common/errorPage.jsp";
+			request.setAttribute("msg", "게시글 목록 조회 실패");
+			request.setAttribute("exception", e);
+			
+		}
+
+		request.getRequestDispatcher(page).forward(request, response);
+		
+// 쿼리 board-query.properties
+// 한 페이지에 5개의 게시물을 보여준다고 했을 때, 2페이지를 조회한다면 10개의 게시물만 조회한 뒤 RowNum이 6보다 큰 Data만 가져오는 방식 
+selectList = SELECT BO.*, (SELECT M.NICKNAME FROM MEMBER M JOIN SELLER S ON (M.MNO = S.MNO) WHERE S.SNO= BO.SNO) USERNAME FROM (SELECT ROWNUM RNUM, B.* FROM (SELECT * FROM SELLERBOARD WHERE STATE='B2' AND CATEGORY1_CODE = ? ORDER BY BNO DESC) B WHERE ROWNUM <= ?) BO WHERE RNUM >= ?
+</code></pre>
 ### 결제
 사용자가 서비스를 확인하고 구매할 수 있는 페이지입니다.
 * 사용자가 선택한 서비스의 상세정보, 가격, 서비스평가를 볼 수 있습니다.
