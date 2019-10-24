@@ -648,11 +648,30 @@ selectList = SELECT BO.*, (SELECT M.NICKNAME FROM MEMBER M JOIN SELLER S ON (M.M
 ![Alt text](images/myService.png)
 * * *
 ## 관리자
+### 관리자 로그인
+지정된 관리자아이디로 로그인 할 경우 관리자페이지로 이동합니다.
+<pre><code>
+// 관리자 계정일 경우 관리자 페이지로 보낸다.
+if(m.getIsAdmin().equals("Y")) {
+	HttpSession session = request.getSession();
+	session.setAttribute("admin", m);
+	response.sendRedirect("memberSelect.admin");
+</code></pre>
 ### 회원 관리
 관리자가 회원을 관리하는 페이지입니다.
 * 회원을 정지 또는 탈퇴 시킬 수 있습니다. 정지된 사용자는 로그인 시 정지기한을 확인할 수 있도록 alert로 보여줍니다.
 * 각 사용자의 보기 버튼에 해당하는 <tr>내의 email과 nickName을 전달하여 사용자의 서비스를 확인 할 수 있습니다.
 ![Alt text](images/admin1.png)
+<pre><code>
+// 해당 멤버 게시물 전체 조회 함수
+$('.docBtn').each(function(index, item){
+	$(this).click(function(){
+		var email = $(this).parent().parent().fint('td').eq(1).text();
+		var nickName = $(this).parent().parent().fint('td').eq(2).text();
+		location.href="/semi/docList.admin?email="+email+"&nickName="+nickName;
+	});
+});
+</code></pre>
 ### 서비스 관리
 관리자가 서비스를 관리하는 페이지입니다.
 * 등록대기중인 서비스를 확인하고, 관리자의 결정을 통해 서비스 등록여부를 결정합니다.
