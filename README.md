@@ -5,7 +5,8 @@
 ![Alt text](images/main.png)
 ## Overview
 ![Alt text](images/project_overview.PNG)
-
+## db 설계
+![Alt text](images/db2.png)
 ## 담당임무
 기능 기획, DB설계, 서비스 및 판매관리 기능 구현, 프로젝트 매니저
 * 팀원들과 프로젝트 주제 선정, 기능 기획, 테이블 설계
