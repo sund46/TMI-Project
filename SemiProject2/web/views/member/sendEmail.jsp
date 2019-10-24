@@ -12,8 +12,8 @@
 <%@ page import = "member.common.PasswordWrapper" %>
 
 <% 
-	final String sender = "sund46@naver.com"; // 보내는 사람 이메일
-	final String password = "rlaeogus2@"; // 보내는 사람 비밀번호
+	final String sender = ""; // 보내는 사람 이메일
+	final String password = ""; // 보내는 사람 비밀번호
 	String receiver = request.getParameter("email"); // 받는 사람
 
 	Properties props = new Properties();
